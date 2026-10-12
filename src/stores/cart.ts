@@ -18,7 +18,8 @@ export const useCartStore = create<CartState>()(persist((set, get) => ({
       const variables = !cartId ? { input: { lines: [{ merchandiseId: variantId, quantity }] } } : operation === 'cartLinesRemove' ? { cartId, lineIds: [lineId] } : { cartId, lines: [lineId ? { id: lineId, quantity } : { merchandiseId: variantId, quantity }] };
       const result = await storefrontApiRequest<Record<string, { cart: Cart | null; userErrors: { message: string }[] }>>(`mutation(${declarations}){${operation}(${args}){cart{${cartFields}} userErrors{message}}}`, variables);
       const payload = result[operation];
-      if (payload.userErrors.length) { if (payload.userErrors.some(e => /not found|does not exist/i.test(e.message))) set({ cart: null }); throw new Error(payload.userErrors[0].message); }
+      if (!payload) throw new Error("The shopping bag could not be updated.");
+      if (payload.userErrors.length) { if (payload.userErrors.some(e => /not found|does not exist/i.test(e.message))) set({ cart: null }); throw new Error(payload.userErrors[0]?.message ?? "Could not update your bag."); }
       set({ cart: payload.cart?.lines.nodes.length ? payload.cart : null });
     } catch (error) { set({ error: error instanceof Error ? error.message : 'Could not update your bag.' }); }
     finally { set({ busy: false }); }
