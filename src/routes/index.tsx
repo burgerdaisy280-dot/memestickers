@@ -1,24 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
-
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
-export const Route = createFileRoute("/")({
-  component: Index,
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { ArrowUpRight, ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ProductGrid } from '@/components/store';
+import { productsOptions } from '@/lib/shopify';
+import spread from '@/assets/sticker-spread.jpg';
+export const Route = createFileRoute('/')({
+ head: () => ({ meta: [{ title: 'STICKR — Meme stickers. Maximum chaos.' }, { name: 'description', content: 'The internet, but sticky. Find your next favorite meme sticker at STICKR.' }, { property: 'og:title', content: 'STICKR — Meme stickers. Maximum chaos.' }, { property: 'og:description', content: 'Tiny stickers. Big main character energy.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary_large_image' }] }),
+ loader: ({ context }) => context.queryClient.ensureQueryData(productsOptions), component: Index,
 });
-
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
-  );
-}
+function Index() { const { data: products } = useSuspenseQuery(productsOptions); return <main><section className="sticker-hero"><img src={spread} width={1536} height={1024} className="hero-photo" alt="Original meme sticker artwork: a crying frog, pixel cat, melting smiley, goose and flaming dumpster"/><div className="hero-content"><div className="eyebrow"><span/> NOT FOR BORING PEOPLE</div><h1>MEMES.<br/>BUT MAKE<br/>’EM <em>STICK.</em></h1><p>Your personality called.<br/>It wants to be on your laptop.</p><Button asChild className="hero-cta"><Link to="/shop" search={{ category: "all" }}>Find your sticker <ArrowUpRight/></Link></Button></div><div className="hero-note">STICKR ORIGINAL ARTWORK / INTERNET-INSPIRED</div><div className="hero-seal"><span>CHRONICALLY</span><strong>☺</strong><span>ONLINE CLUB</span></div></section><div className="ticker" aria-hidden="true"><div className="ticker-track">{Array.from({length:4},(_,i)=><span key={i}>BIG STICKER ENERGY <b>✳</b> &nbsp; LESS SCROLLING. MORE STICKING. &nbsp; <b>✳</b> &nbsp; CERTIFIED INTERNET BEHAVIOR &nbsp; <b>✳</b></span>)}</div></div><section className="catalog-section"><div className="section-top"><div><div className="section-kicker">PICK YOUR PERSONALITY</div><h2 className="section-title">THE STICKER DEPARTMENT.</h2></div><Link to="/shop" search={{ category: "all" }} className="text-link">Shop all <ArrowUpRight size={16}/></Link></div><div className="filter-row">{['All stickers','Brainrot','Cat energy','Sticker packs'].map((label,i)=><Button asChild variant={i ? 'outline' : 'default'} className={`filter-button ${i===0?'selected':''}`} key={label}><Link to="/shop" search={{category:['all','brainrot','cats','packs'][i] ?? 'all'}}>{label}</Link></Button>)}</div><ProductGrid products={products.slice(0,8)}/></section><section className="manifesto"><h2>LIFE’S TOO SHORT<br/>FOR A BORING LAPTOP.</h2><p>A little chaos. A lot of personality.<br/>Put your internet energy out there.<br/><Link to="/shop" search={{ category: "all" }} className="text-link">Make it yours <ArrowRight size={16}/></Link></p><span className="manifesto-symbol">✳</span></section></main>; }
